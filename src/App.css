@@ -49,4 +49,14 @@
             font-family: sans-serif;
         }
     }
+
+    .input-error {
+        color: crimson;
+        font-size: .875rem;
+    }
+
+    button[disabled] {
+        background-color: #ccc;
+        cursor: not-allowed;
+    }
 }
