@@ -3,8 +3,9 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { formatTimestampToDate } from '../../utils/FormatDate';
 import './NewsCard.css';
 import { faStar } from '@fortawesome/free-regular-svg-icons';
+import { faPencil, faTrash } from '@fortawesome/free-solid-svg-icons';
 
-function NewsCard({ noticia, fnCambiar }) {
+function NewsCard({ noticia, fnCambiar, fnBorrar, fnEditar }) {
 
     // const { id, title, text, destacado, date } = noticia;
 
@@ -21,6 +22,19 @@ function NewsCard({ noticia, fnCambiar }) {
         }
 
         <div className="date">{ formatTimestampToDate(noticia.date) }</div>
+
+        <div className="btn-container">
+          {/* # Borrar */}
+          <button className="deleteNews"  
+                  onClick={() => fnBorrar(noticia.id)}>
+            <FontAwesomeIcon icon={faTrash} />
+          </button>
+          {/* # Editar */}
+          <button className="editNews" onClick={() => fnEditar(noticia.id)}>
+            <FontAwesomeIcon icon={faPencil} />
+          </button>
+        </div>
+
       </article>
     );
 }

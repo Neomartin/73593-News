@@ -1,8 +1,12 @@
 import MainTitle from "./components/MainTitle/MainTitle";
 import NewsCard from "./components/NewsCard/NewsCard";
 import "./App.css";
-import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { useEffect, useState } from "react";
+import { set, useForm } from "react-hook-form";
+import { formatTimestampToInputDate } from "./utils/FormatDate";
+import axios from "axios";
+
+const URL = "https://6838f7486561b8d882aeb42f.mockapi.io"
 
 
 const NEWS = [
@@ -38,16 +42,33 @@ const NEWS = [
 
 function App() {
 
-  const { register, handleSubmit, reset, formState: { errors, isValid } } = useForm({ mode: "onChange"});
+  const { register, handleSubmit, setValue, reset, formState: { errors, isValid } } = useForm({ mode: "onChange"});
 
 
   // Petición a la API para obtener las noticias
   const [ id, setId ] = useState("");
 
+  const [ noticiaEditar, setNoticiaEditar ] = useState(null);
 
-  const [ noticias, setNoticias] = useState(NEWS)
+  const [ noticias, setNoticias] = useState([])
 
-  
+  useEffect(() => {
+    // Cargar las noticias desde la API
+    obtenerNoticias();
+
+    // Cargar las noticias desde el array de noticias
+    // setNoticias(NEWS);
+  }, [])
+
+
+  function obtenerNoticias() {
+
+    // Obtener las noticias desde la API de MockAPI
+    axios.get(`${URL}/news`).then(response => {
+      setNoticias(response.data);
+    })
+  }
+
 
 
   function generarIDRandom() {
@@ -56,35 +77,59 @@ function App() {
     setId(idRandom)
   }
 
-  function cargarNoticia(e) {
+  // function cargarNoticia(e) {
 
-    e.preventDefault()
+  //   e.preventDefault()
 
-    const el = e.target.elements;
+  //   const el = e.target.elements;
 
-    const nuevaNoticia = {
-      id: Date.now(),
-      title: el.titulo.value,
-      text: el.texto.value,
-      date: new Date(el.fecha.value + "T00:00:00").getTime(),
-      destacado: el.destacado.checked,
+  //   const nuevaNoticia = {
+  //     id: Date.now(),
+  //     title: el.titulo.value,
+  //     text: el.texto.value,
+  //     date: new Date(el.fecha.value + "T00:00:00").getTime(),
+  //     destacado: el.destacado.checked,
+  //   }
+
+  //   console.log(nuevaNoticia)
+
+  //   setNoticias( [ ...noticias, nuevaNoticia ] )
+
+  // }
+
+  function submitReactForm(noticiaData) {
+    console.log(noticiaData);
+
+    
+    noticiaData.date = new Date(noticiaData.date + "T00:00:00").getTime();
+
+    if(noticiaEditar) {
+      const noticiasActualizadas = noticias.map(noti => {
+
+        if(noti.id === noticiaEditar.id) {
+          return { ...noticiaData, id: noti.id}
+        }
+
+        return noti;
+      })
+
+      setNoticias(noticiasActualizadas);
+      setNoticiaEditar(null);
+      
+    } else {
+      // CARGAR NOTICIA NUEVA
+      noticiaData.id = crypto.randomUUID();
+      // setNoticias([ ...noticias, noticiaData ]);
+      // CARGAR NOTICIA NUEVA MOCKAPI
+      axios.post(`${URL}/news`, noticiaData).then(response => {
+        console.log(response.data)
+      })
+
+
     }
 
-    console.log(nuevaNoticia)
-
-    setNoticias( [ ...noticias, nuevaNoticia ] )
-
-  }
-
-  function submitReactForm(noticia) {
-    console.log(noticia);
-
-    noticia.id = crypto.randomUUID();
-    noticia.date = new Date(noticia.date + "T00:00:00").getTime();
-
-    setNoticias([ ...noticias, noticia ]);
-
-    // reset();
+    // Reiniciamos el formulario
+    reset();
   }
 
   function cambiarNoticiaADestacada(id) {
@@ -103,11 +148,46 @@ function App() {
         return { ...noti, destacado: true }
       }
       return noti;
-
     })
 
     setNoticias(noticiasActualizadas);
   }
+
+  function borrarNoticia(id) {
+
+    // buscaría la noticia por el ID y obtendriamos el indice (posición de la noticia en el array)
+    // #Método findIndex
+    // const indice = noticias.findIndex(noti => noti.id === id);
+    
+    // const arrayCopy = [ ...noticias ];
+
+    // arrayCopy.splice(indice, 1);
+
+    // setNoticias(arrayCopy);
+
+    // #Método filter
+    const filteredArray = noticias.filter(noticia => noticia.id !== id);
+
+    setNoticias(filteredArray)
+
+  }
+
+
+  function editarNoticia(id) {
+    // Buscamos el objeto noticia
+    const noticia = noticias.find(noticia => noticia.id === id)
+    // Nosotros rellenemos el formulario con la noticia que queremos editar
+    console.log(noticia)
+    // Rellenamos el formulario con los valores de la noticia a editar
+    setValue("title", noticia.title)
+    setValue("text", noticia.text)
+    setValue("destacado", noticia.destacado)
+    setValue("date", formatTimestampToInputDate(noticia.date))   // 1321321329139129 => "2025-05-29"
+    setNoticiaEditar(noticia);
+
+  }
+
+
 
 
   return (
@@ -139,6 +219,8 @@ function App() {
             return <NewsCard  key={noticia.id} 
                               noticia={noticia}
                               fnCambiar={cambiarNoticiaADestacada}
+                              fnBorrar={borrarNoticia}
+                              fnEditar={editarNoticia}
                     />;
           })}
         </div>
@@ -167,7 +249,7 @@ function App() {
                         message: "El título debe tener al menos 5 caracteres"
                       },
                       maxLength: {
-                        value: 10,
+                        value: 100,
                         message: "El título no puede exceder los 100 caracteres"
                       }
                     }
@@ -192,7 +274,12 @@ function App() {
             <input type="checkbox" id="featured" { ...register("destacado") } />
           </div>
 
-          <button className="btn" type="submit" disabled={!isValid}>Cargar Noticia</button>
+          <button className={`btn ${noticiaEditar &&  'btn-success'}`} type="submit"> 
+             {/* disabled={!isValid} */}
+            
+            { noticiaEditar ? "Editar Noticia" : "Cargar Noticia" }
+            
+            </button>
 
         </form>
 

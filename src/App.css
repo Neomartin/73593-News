@@ -27,6 +27,13 @@
     &:hover {
         background-color: #0056b3;
     }
+
+    &.btn-success {
+        background-color: #2fc351;
+        &:hover {
+            background-color: #218838;
+        }
+    }
 }
 
 .form {

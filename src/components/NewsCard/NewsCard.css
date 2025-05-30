@@ -4,6 +4,7 @@
     border: 2px solid dodgerblue;
     position: relative;
     background-color: #121212;
+    overflow: hidden;
 
     .title {
         margin: 0 0 1rem;
@@ -41,5 +42,41 @@
         text-align: end;
         color: #AAA;
         font-style: italic;
+    }
+
+    &:hover {
+        .btn-container {
+            right: 8px;
+        }
+    }
+
+    .btn-container {
+        position: absolute;
+        top: 8px;
+        right: -24px;
+        display: flex;
+        flex-direction: column;
+        gap: .5rem;
+        transition: right 0.3s ease-in-out;
+    }
+
+    .deleteNews {
+        background-color: crimson;
+        color: white;
+        padding: 0.125rem .25rem;
+        border-radius: 2px;
+        cursor: pointer;
+        border: none;
+        outline: none;
+    }
+
+    .editNews {
+        background-color: dodgerblue;
+        color: white;
+        padding: 0.125rem .25rem;
+        border-radius: 2px;
+        cursor: pointer;
+        border: none;
+        outline: none;
     }
 }
